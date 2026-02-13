@@ -2,19 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light;
-}
-
+html,
 body {
-  @apply bg-mist text-ink;
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-}
-
-* {
-  @apply box-border;
-}
-
-a {
-  @apply text-inherit no-underline;
+  height: 100%;
 }

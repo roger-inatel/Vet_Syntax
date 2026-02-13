@@ -1,24 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
-
-const publicPaths = ["/login", "/_next", "/favicon.ico"];
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const token = request.cookies.get("token")?.value;
 
-  if (publicPaths.some((path) => pathname.startsWith(path))) {
-    return NextResponse.next();
+  const isAuthRoute = request.nextUrl.pathname.startsWith("/login");
+  const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard");
+
+  if (!token && isDashboardRoute) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const token = request.cookies.get("vet_token");
-
-  if (!token) {
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+  if (token && isAuthRoute) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/tutors/:path*", "/animals/:path*", "/atendimentos/:path*"],
+  matcher: ["/dashboard/:path*", "/login"],
 };

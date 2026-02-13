@@ -1,43 +1,46 @@
-import Link from "next/link";
+"use client";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/tutors", label: "Tutores" },
-  { href: "/animals", label: "Animais" },
-  { href: "/atendimentos", label: "Atendimentos" },
-];
+import { useAuthStore } from "@/stores/auth-store";
+import { useRouter } from "next/navigation";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
+
+  function handleLogout() {
+    logout();
+    document.cookie = "token=; path=/; max-age=0";
+    router.push("/login");
+  }
+
   return (
-    <div className="min-h-screen bg-mist text-ink">
-      <div className="grid min-h-screen grid-cols-[260px_1fr]">
-        <aside className="flex flex-col gap-6 border-r border-clay/30 bg-white px-6 py-8">
-          <div className="space-y-1">
-            <p className="text-xs uppercase tracking-[0.3em] text-fern">Vet</p>
-            <p className="text-lg font-semibold">Platform</p>
-          </div>
-          <nav className="flex flex-col gap-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-xl px-3 py-2 text-sm font-medium text-ink/80 transition hover:bg-mist"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </aside>
-        <main className="px-10 py-8">
-          <div className="rounded-3xl bg-white p-8 shadow-soft">
-            {children}
-          </div>
-        </main>
-      </div>
+    <div className="min-h-screen flex">
+      <aside className="w-64 bg-gray-900 text-white p-4">
+        <h2 className="font-bold mb-6">Vet Platform</h2>
+        <nav className="space-y-2">
+          <a href="/dashboard" className="block">
+            Dashboard
+          </a>
+          <a href="/dashboard/tutors" className="block">
+            Tutores
+          </a>
+          <a href="/dashboard/animals" className="block">
+            Animais
+          </a>
+          <a href="/dashboard/atendimentos" className="block">
+            Atendimentos
+          </a>
+          <button onClick={handleLogout} className="mt-4 text-red-400">
+            Logout
+          </button>
+        </nav>
+      </aside>
+
+      <main className="flex-1 bg-gray-100 p-6">{children}</main>
     </div>
   );
 }
