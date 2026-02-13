@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Tutor {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome      String
+  telefone  String
+  email     String?
+  endereco  String?
+  animais   Animal[]
+  createdAt DateTime @default(now())
+}
+
+model Animal {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  nome      String
+  especie   String
+  raca      String?
+  idade     Int?
+  peso      Float?
+  tutorId   String   @db.ObjectId
+  tutor     Tutor    @relation(fields: [tutorId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Atendimento {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  animalId    String   @db.ObjectId
+  data        DateTime
+  descricao   String
+  tipoServico String
+  valor       Float
+}
+
+model Admin {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  passwordHash String
+  role         String   @default("ADMIN")
+  createdAt    DateTime @default(now())
+}

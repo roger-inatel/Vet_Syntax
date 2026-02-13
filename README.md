@@ -1,135 +1,123 @@
-# Turborepo starter
+# Vet Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+Sistema de gestao veterinaria fullstack com foco em arquitetura limpa, regras de negocio claras e seguranca. Monorepo com Turbo, backend em Node.js + Express + Prisma + MongoDB e frontend em Next.js (App Router).
 
-## Using this example
+## Objetivo
 
-Run the following command:
+- Gerenciar tutores, animais e atendimentos
+- Autenticacao admin-only com JWT
+- Estrutura preparada para evoluir em produto SaaS
 
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## Estrutura do Monorepo
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+apps/
+  api/  # backend
+  web/  # frontend
+packages/
+  eslint-config/
+  typescript-config/
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Backend (apps/api)
+
+### Stack
+
+- Node.js + Express
+- TypeScript
+- Prisma ORM (v6)
+- MongoDB (Replica Set)
+- JWT + bcryptjs
+
+### Arquitetura (Clean Architecture simplificada)
+
+- domain: entidades e contratos
+- application: use cases, services, errors
+- infra: Prisma e repositorios concretos
+- presentation: controllers, routes, middlewares
+- main: bootstrap do servidor
+
+### Modelos de Dominio
+
+- Tutor
+- Animal
+- Atendimento
+- Admin
+
+### Regras de Negocio (resumo)
+
+- Animal so pode ser criado com tutor existente
+- Tutor nao pode ser deletado se tiver animais
+- Email de tutor e unico
+- Validacoes basicas de campos obrigatorios
+- Autenticacao admin-only com role
+
+### Rotas
+
+- Publicas:
+  - GET /health
+  - POST /auth/admin
+  - POST /auth/login
+- Protegidas:
+  - /tutors
+  - /animals
+
+### Variaveis de ambiente (apps/api/.env)
 
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+PORT=3001
+DATABASE_URL="mongodb://localhost:27017/vet_platform?replicaSet=rs0"
+JWT_SECRET="vet-platform-dev-secret"
+JWT_EXPIRES_IN="1d"
+BCRYPT_SALT_ROUNDS=10
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
+### MongoDB via Docker
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+docker run -d -p 27017:27017 --name vet-mongo mongo:7 --replSet rs0
+docker exec -it vet-mongo mongosh
+rs.initiate()
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+### Rodar backend
 
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+cd apps/api
+npm install
+npx prisma generate
+npx prisma db push
+npm run dev
 ```
 
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+Health check:
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+GET http://localhost:3001/health
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## Frontend (apps/web)
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+### Status
+
+Frontend em fase de construcao (MVP). A base e Next.js App Router com Tailwind.
+
+### Variavel de ambiente (apps/web/.env.local)
 
 ```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-## Useful Links
+### Rodar frontend
 
-Learn more about the power of Turborepo:
+```
+cd apps/web
+npm install
+npm run dev
+```
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+## Roadmap (resumo)
+
+- MVP frontend: login, dashboard, CRUD de tutores/animais/atendimentos
+- Observabilidade: logs, auditoria, toasts, loading states
+- Evolucao: roles, multi-clinica, pipelines, deploy
